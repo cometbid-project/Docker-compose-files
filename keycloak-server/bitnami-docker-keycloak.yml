@@ -1,0 +1,64 @@
+version: '2'
+
+services:
+  postgresql:
+    container_name: "bitnami-keycloak-postgresql"
+    image: docker.io/bitnami/postgresql:11
+    restart: always
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      #- ALLOW_EMPTY_PASSWORD=yes
+      - POSTGRESQL_USERNAME=bn_keycloak
+      - POSTGRESQL_DATABASE=bitnami_keycloak
+      - KEYCLOAK_DATABASE_HOST=${POSTGRESQL_DATABASE_HOST}
+      - KEYCLOAK_DATABASE_PORT=${POSTGRESQL_DATABASE_PORT}
+      - KEYCLOAK_DATABASE_NAME=${POSTGRESQL_DATABASE_NAME}
+      - KEYCLOAK_DATABASE_USER=${POSTGRESQL_USERNAME} 
+      - KEYCLOAK_DATABASE_PASSWORD=${POSTGRESQL_PASSWORD}
+      - KEYCLOAK_DATABASE_SCHEMA=${POSTGRESQL_DATABASE_SCHEMA}
+      - KEYCLOAK_DATABASE_TLS=${POSTGRESQL_DATABASE_TLS_ENABLED}
+    env_file: .env
+    volumes:
+      - 'postgresql_data:/bitnami/postgresql'      
+    networks:
+      - local-keycloak
+      
+  keycloak:
+    image: docker.io/bitnami/keycloak:15
+    container_name: "bitnami-keycloak-server"
+    depends_on:
+      - postgresql
+    environment:
+      - KEYCLOAK_CREATE_ADMIN_USER=${KEYCLOAK_CREATE_ADMIN_USER}
+      - KEYCLOAK_ADMIN_USER=${KEYCLOAK_ADMIN_USER}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KEYCLOAK_MANAGEMENT_USER=${KEYCLOAK_MANAGEMENT_USER}
+      - KEYCLOAK_MANAGEMENT_PASSWORD=${KEYCLOAK_MANAGEMENT_PASSWORD}
+      - KEYCLOAK_HTTP_PORT=${KEYCLOAK_HTTP_PORT}
+      - KEYCLOAK_HTTPS_PORT=${KEYCLOAK_HTTPS_PORT}
+      - KEYCLOAK_BIND_ADDRESS=${KEYCLOAK_BIND_ADDRESS}
+      - KEYCLOAK_ENABLE_TLS=${KEYCLOAK_TLS_ENABLED}
+      - KEYCLOAK_TLS_KEYSTORE_FILE="/opt/bitnami/keycloak/certs/keystore.jks"
+      - KEYCLOAK_TLS_TRUSTSTORE_FILE="/opt/bitnami/keycloak/certs/truststore.jks"
+      - KEYCLOAK_TLS_KEYSTORE_PASSWORD=${KEYCLOAK_KEYSTORE_PASSWORD}
+      - KEYCLOAK_TLS_TRUSTSTORE_PASSWORD=${KEYCLOAK_TRUSTSTORE_PASSWORD}
+      - KEYCLOAK_ENABLE_STATISTICS=true
+    env_file: .env
+    volumes:
+      - 'keycloak_certs:/opt/bitnami/keycloak/certs' 
+      - 'keycloak_themes:/opt/bitnami/keycloak/themes'
+    ports:
+      - "28080:8080"
+    restart: always
+    networks:
+      - local-keycloak
+      
+volumes:
+  postgresql_data:
+    driver: local-keycloak
+  keycloak_certs:
+    driver: keycloak-certs
+      
+networks:
+  local-keycloak:
+  keycloak-certs:

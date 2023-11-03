@@ -1,0 +1,12 @@
+docker run --rm \
+    -v $(pwd):/lego \
+    -v ${HOME}/.aws/credentials:/root/.aws/credentials \
+    -e AWS_PROFILE=lego \
+    -ti goacme/lego \
+    --accept-tos \
+    --domains=subdomain1.example.com \
+    --domains=subdomain2.example.com \
+    --server=https://acme-staging-v02.api.letsencrypt.org/directory \
+    --email=info@example.com \
+    --path=/lego \
+    --dns=route53 run

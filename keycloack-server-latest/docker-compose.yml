@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+
+  keycloak_db:
+    image: postgres:15.1
+    env_file:
+      - ./keycloak-postgres.env
+    container_name: keycloak-db
+    restart: unless-stopped
+    ports:
+      - "15432:5432"
+    volumes: 
+      - keycloak_postgresql:/var/lib/postgresql-db
+      - keycloak_postgresql_data:/var/lib/postgresql-db/data
+    networks:
+      - keycloak-internal
+      
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:20.0
+    restart: unless-stopped
+    env_file:
+      - ./keycloak-postgres.env
+    environment:
+      KC_FEATURES:
+        authorization
+        token-exchange
+        impersonation
+        web-authn
+    entrypoint: /opt/keycloak/bin/kc.sh start --auto-build
+    #links:
+      #- keycloak_db:postgres
+    volumes:
+      - keycloak_data:/keycloak_data
+      - ./certificates/idp.cometbid.com+1.pem:/opt/keycloak/conf/server.crt.pem
+      - ./certificates/idp.cometbid.com+1-key.pem:/opt/keycloak/conf/server.key.pem
+    ports:
+      - "18443:8443"
+      - "18080:8080"
+    networks:
+      - keycloak-internal
+    depends_on:
+      - keycloak_db
+
+volumes: 
+  keycloak_postgresql:
+  keycloak_postgresql_data:
+  keycloak_data:
+  #prometheus_data:
+  #grafana_data:
+
+networks:
+  keycloak-internal:
+    name: keycloak-internal

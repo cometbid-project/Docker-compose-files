@@ -1,0 +1,183 @@
+https://wjw465150.gitbooks.io/keycloak-documentation/content/server_installation/index.html
+https://www.keycloak.org/documentation.html
+https://gruchalski.com/posts/2020-09-05-introduction-to-keycloak-authorization-services/
+https://www.thomasvitale.com/spring-boot-keycloak-security/
+https://www.thomasvitale.com/spring-security-keycloak/
+
+
+https://codersee.com/keycloak-with-spring-boot-and-kotlin-introduction/
+https://codersee.com/how-to-set-up-keycloak-admin-client-with-spring-boot-and-kotlin/
+
+
+https://developers.redhat.com/blog/2020/11/24/authentication-and-authorization-using-the-keycloak-rest-api
+https://developers.redhat.com/blog/2020/01/29/api-login-and-jwt-token-generation-using-keycloak
+
+
+https://medium.com/chain-analytica/keycloak-create-users-for-a-realm-in-spring-boot-3eff924a8db1
+https://medium.com/chain-analytica/keycloak-working-with-realm-roles-in-springboot-dc2776ccd27e
+https://medium.com/chain-analytica/keycloak-work-with-client-roles-in-spring-boot-a34d74947c93
+
+
+https://wstutorial.com/rest/spring-security-oauth2-keycloak.html
+https://wstutorial.com/rest/spring-boot-with-lets-encrypt.html
+
+
+https://github.com/edwin/java-keycloak-integration/blob/master/src/main/java/com/edw/service/KeycloakRestService.java
+https://betterprogramming.pub/how-to-authenticate-your-spring-boot-application-with-keycloak-1e9ccb5f2478
+
+
+Tutorials
+-----------------------------------------------------
+https://gruchalski.com/posts/2020-09-05-introduction-to-keycloak-authorization-services/
+https://gruchalski.com/posts/2020-09-03-keycloak-with-docker-compose/
+https://gruchalski.com/posts/2020-09-16-keycloak-authorization-services-rpt-permissions-or-a-decision-only/
+https://gruchalski.com/posts/2020-09-06-keycloak-authorization-services-decision-only/
+https://jdbc.postgresql.org/documentation/head/connect.html
+https://github.com/keycloak/keycloak-containers/tree/master/docker-compose-examples
+https://docs.docker.com/compose/compose-file/compose-file-v3/#ports
+
+
+SpringBoot-Oauth2-Angular Tutorials
+--------------------------------------------------
+https://www.baeldung.com/restapi-spring-oauth2-angular
+https://www.baeldung.com/spring-security-oauth2-refresh-token-angular
+
+
+
+Start docker-compose server
+------------------------------------------
+docker-compose -f keycloak-postgres.yml up
+http://localhost:28080/auth/admin/master/console/
+
+
+Create Client in Keycloak
+-----------------------------------
+1. Set the Access Type to bearer-only:
+It means, that our application will not initiate a login, it’ll just pass received tokens to verify them with Keycloak. 
+Most of the time, you will set this type of access type for the Spring Boot backends, which don’t need to call another microservices secured by Keycloak, or to use a service account.
+
+2. Create the public client, which will be used to get access tokens on behalf of the user:
+This time, only the Direct Access Grants flow is enabled and the Access Type is set to public.
+The public access type is used for clients, which cannot keep secrets securely, like frontend applications for instance.
+
+
+
+Creating Client Administrative User(Preferred for token Exchange)
+------------------------------------------------------------------
+1. Create regular user in a realm:
+   1. Open admin console and select realm of your choice (realm selection box on top left side).
+   2. Go to users (sidebar) -> add user (button on the right side)
+   3. Fill in required fields and press save button.
+   4. Open Credentials tab and set password.
+   5. Open Role Mapping tab:
+      1. Select realm-management under Client Roles.
+      2. Select all available roles and press Add selected.
+2. Go to http://keycloak/auth/admin/REALM_NAME/console (replace REALM_NAME with realm name in which you created the user) and login.
+3. You should see admin UI only for this realm.
+4. Adjust permissions of this realm admin user (from another browser with the master admin account).
+
+Creating Keycloak Management User
+------------------------------------------------------------------
+Example 1 -> Using a User
+1. Create a new Client under a desired realm e.g keycloak-admin
+2. Select public client with only direct access grant enabled
+3. Create a new Role, enable Composite roles
+  - type realm-management into client roles under composite roles
+  - add available roles that you need
+4. Select a User and open role mappings tab
+  - type keycloak-admin in client roles and add needed roles
+
+  Keycloak keycloak = KeycloakBuilder.builder()
+    .serverUrl("http://localhost:8080/auth")
+    .grantType(OAuth2Constants.PASSWORD)
+    .realm("realm-name")
+    .clientId("keycloak-admin")
+    .username("username")
+    .password("password")
+    .resteasyClient(
+        new ResteasyClientBuilder()
+            .connectionPoolSize(10).build()
+    ).build();
+
+keycloak.tokenManager().getAccessToken();
+RealmResource realmResource = keycloak.realm("realm-name");
+
+
+Example 2 -> Using a Confidential Service Account(Preferred Approach)
+
+1. Create new client under your desired realm -> keycloak-admin
+2. Select confidential client with only service account enabled
+3. Select tab Service Account roles
+  - type realm-management into client roles
+  - add available roles that you need
+
+Keycloak keycloak = KeycloakBuilder.builder()
+    .serverUrl("http://localhost:8080/auth")
+    .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
+    .realm("realm-name")
+    .clientId("keycloak-admin")
+    .clientSecret("1c7e2815-c4dc-401c-af2f-ebddad3b4a79")
+    .resteasyClient(
+        new ResteasyClientBuilder()
+            .connectionPoolSize(10).build()
+    ).build();
+
+keycloak.tokenManager().getAccessToken();
+RealmResource realmResource = keycloak.realm("realm-name");
+
+
+Example 3 -> Using Admin Account
+You could also use the admin user with the password grant and use the existing admin-cli client.
+
+Keycloak keycloak = KeycloakBuilder.builder()
+    .serverUrl("http://localhost:8080/auth")
+    .grantType(OAuth2Constants.PASSWORD)
+    .realm("master")
+    .clientId("admin-cli")
+    .username("admin")
+    .password("password")
+    .resteasyClient(
+        new ResteasyClientBuilder()
+            .connectionPoolSize(10).build()
+    ).build();
+
+keycloak.tokenManager().getAccessToken();
+RealmResource realmResource = keycloak.realm("realm-name");
+
+
+
+Must Read
+https://github.com/thomasdarimont/spring-boot-admin-keycloak-example
+https://ravthiru.medium.com/keycloak-retrieve-custom-attributes-in-access-token-1a2d5aef0caa
+
+Webflux Youtube tutorial
+https://www.youtube.com/watch?v=IW6BLgvF5Os
+
+
+
+
+
+https://stackoverflow.com/questions/65714161/keycloak-generate-access-token-for-a-user-with-keycloak-admin
+admin	True	Myrealm admin role
+APP_MANAGER	True	For the creator of the Merchant account and the role cannot be reassigned	Edit	Delete
+BASIC	False	Basic role with the least privilege in the app -default	Edit	Delete
+MANAGER	True	Manager role for users registered by the owner of the Merchant account	Edit	Delete
+STAFF	True	Staff role, dedicated to Merchant's staffs both Contract and Full-time	Edit	Delete
+USER  False	User role, the least role privilege for an application user
+
+
+
+
+
+
+Microservices Setup -- Keycloak
+https://developers.redhat.com/blog/2020/11/24/authentication-and-authorization-using-the-keycloak-rest-api#keycloak_sso_demo
+
+
+
+
+
+
+
+
+

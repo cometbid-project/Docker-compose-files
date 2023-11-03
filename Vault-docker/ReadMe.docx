@@ -1,0 +1,5 @@
+Create Policy in Vault
+----------------------------------
+path "myengine/*" {
+   capabilities = ["create", "read", "update", "delete", "list"]
+}

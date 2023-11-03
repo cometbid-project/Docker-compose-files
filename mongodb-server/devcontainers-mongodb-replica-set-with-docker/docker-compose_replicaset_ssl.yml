@@ -1,0 +1,79 @@
+version: '2'
+
+services:
+  mongodb-primary:
+    image: docker.io/bitnami/mongodb:4.4
+    restart: 'on-failure'
+    environment:
+      - MONGODB_USERNAME=my_user
+      - MONGODB_PASSWORD=password123
+      - MONGODB_DATABASE=my_database
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_EXTRA_FLAGS=--tlsMode=requireTLS --tlsCertificateKeyFile=/certificates/mongodb-primary.pem --tlsClusterFile=/certificates/mongodb-primary.pem --tlsCAFile=/certificates/mongoCA.crt
+      - MONGODB_CLIENT_EXTRA_FLAGS=--tls --tlsCertificateKeyFile=/certificates/mongodb-primary.pem --tlsCAFile=/certificates/mongoCA.crt
+    volumes:
+      - 'mongodb_master_data:/bitnami/mongodb'
+      - ./.docker/mongodb/scripts/mongosetup.sh:/scripts/mongosetup.sh
+        # entrypoint: ["bash"]
+        entrypoint: ["bash", "/scripts/mongosetup.sh" ]
+    env_file:
+      - .env
+    networks:
+      - app-tier 
+      
+  mongodb-secondary:
+    image: docker.io/bitnami/mongodb:4.4
+    restart: 'on-failure'
+    depends_on:
+      - mongodb-primary
+    volumes:
+      - 'mongodb_data:/bitnami/mongodb'
+      - ./.docker/mongodb/mongodb-configuration-persistence:/bitnami/mongodb/conf
+      - ./.docker/mongodb/initdb.d/:/bitnami/docker-entrypoint-initdb.d/
+      - ./.docker/mongodb/mongod.conf:/bitnami/etc/mongod.conf
+      - ./.docker/mongodb/:/bitnami/certificates/
+    environment:
+      - MONGODB_USERNAME=my_user
+      - MONGODB_PASSWORD=password123
+      - MONGODB_DATABASE=my_database
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_EXTRA_FLAGS=--tlsMode=requireTLS --tlsCertificateKeyFile=/certificates/mongodb-secondary.pem --tlsClusterFile=/certificates/mongodb-secondary.pem --tlsCAFile=/certificates/mongoCA.crt
+      - MONGODB_CLIENT_EXTRA_FLAGS=--tls --tlsCertificateKeyFile=/certificates/mongodb-secondary.pem --tlsCAFile=/certificates/mongoCA.crt
+    networks:
+      - app-tier 
+      
+  mongodb-arbiter:
+    image: docker.io/bitnami/mongodb:4.4
+    restart: 'on-failure'
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_USERNAME=my_user
+      - MONGODB_PASSWORD=password123
+      - MONGODB_DATABASE=my_database
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-arbiter
+      - MONGODB_REPLICA_SET_MODE=arbiter
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_EXTRA_FLAGS=--tlsMode=requireTLS --tlsCertificateKeyFile=/certificates/mongodb-secondary.pem --tlsClusterFile=/certificates/mongodb-secondary.pem --tlsCAFile=/certificates/mongoCA.crt
+      - MONGODB_CLIENT_EXTRA_FLAGS=--tls --tlsCertificateKeyFile=/certificates/mongodb-secondary.pem --tlsCAFile=/certificates/mongoCA.crt
+    networks:
+      - app-tier 
+      
+volumes:
+  mongodb_master_data:
+    driver: local
+
+networks:
+  app-tier:
+    driver: bridge

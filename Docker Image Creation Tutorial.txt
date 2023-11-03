@@ -1,0 +1,139 @@
+Build Docker Image using Maven and SpringBoot > 2.3.0
+https://github.com/anzhihe/Free-Docker-Books/tree/master/book
+------------------------------------------------
+$ docker-machine upgrade
+
+There are three approaches:
+1. Using the integrated Spring Boot build-image goal.
+2. Using the jib-maven-plugin from Google.
+3. Using the dockerfile-maven-plugin from Spotify. 
+
+#1 Using the integrated Spring Boot build-image goal
+
+No Code changes required, simply run the command to build Docker Image:
+$ ./mvnw spring-boot:build-image
+
+Or in Gradle:
+$ ./gradlew bootBuildImage
+
+Successfully built image 'docker.io/library/demo-application:0.0.1-SNAPSHOT'
+
+You can pass command line arguments as follows:
+-Dspring-boot.build-image.imageName=myrepo/myimage
+
+To run the Docker image:
+docker run -p 9090:8080 -t demo-application:0.0.1-SNAPSHOT
+
+#2 Using the jib-maven-plugin from Google
+Jib is a Maven and Gradle plugin for creating Docker images for Java applications.
+
+To build the Docker image, run the command
+mvn compile com.google.cloud.tools:jib-maven-plugin:2.3.0:dockerBuild
+
+Built image to Docker daemon as demo-application:0.0.1-SNAPSHOT
+
+To run the Docker image:
+docker run -p 9091:8080 -t demo-application:0.0.1-SNAPSHOT
+
+#3 Using the dockerfile-maven-plugin from Spotify
+
+Step 1: create a Dockerfile
+
+FROM adoptopenjdk/openjdk11:alpine
+MAINTAINER David Flemström <dflemstr@spotify.com>
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+VOLUME /tmp
+ARG JAR_FILE
+ADD ${JAR_FILE} /app/app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]
+
+Step 2: add some configuration into the pom.xml
+<build>
+  <extensions>
+    <extension>
+      <groupId>com.spotify</groupId>
+      <artifactId>dockerfile-maven-extension</artifactId>
+      <version>${version}</version>
+    </extension>
+  </extensions>
+  <plugin>
+	  <groupId>com.spotify</groupId>
+	  <artifactId>dockerfile-maven-plugin</artifactId>
+	  <version>1.4.13</version>
+	  <executions>
+		<execution>
+		  <id>default</id>
+		  <goals>
+			<goal>build</goal>
+			<goal>push</goal>
+		  </goals>
+		</execution>
+	  </executions>
+	  <configuration>
+		<repository>${project.artifactId}</repository>
+		<tag>${project.version}</tag>
+		<buildArgs>
+		  <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+		</buildArgs>
+	  </configuration>
+   </plugin>
+</build>
+
+
+Step 3: To build Docker image, Run the Standard command:
+$mvn package 
+or 
+$mvn package dockerfile:build
+
+Successfully built ....
+Successfully tagged demo-application:0.0.1-SNAPSHOT
+
+To view all Docker images
+$docker images
+REPOSITORY 				 	TAG 		   IMAGE ID		CREATED 	     SIZE
+project-name/micro-service 0.0.1-SNAPSHOT 231fc4a87903 1 minute ago 	149MB
+
+Step 4: To run the image, and start the container:
+$docker run -p 9092:8080 -t demo-application:0.0.1-SNAPSHOT
+or
+$docker run project-name/demo-application:0.0.1-SNAPSHOT
+
+In order to see all running Containers:
+$docker ps
+
+In order to stop the Containers:
+$> docker inspect config-server
+$> docker stop config-server
+$> docker rm config-server
+$> docker stop <container_id>
+
+Step 5(Optional):
+$mvn deploy
+This will ensure that the image is built and pushed at the correct times
+
+Step 6: Start the Services
+$> docker-compose -f docker-compose.yml up
+$> docker-compose down
+
+Step 7: scale our services like so:
+But for this to work properly, we have to remove the container_name from our docker-compose.yml, 
+to let Docker choose one, and we have to change the exposed port configuration, to avoid clashes.
+
+$> docker-compose build
+$> docker-compose up -d
+$> docker-compose scale config-server=1 config-client=3
+
+How to Launch Docker Images
+----------------------------------
+1. Clone the project from Github repository
+2. Navigate to the right directory and Build the project as Docker image(Local Docker image Registry)
+3. Run a container "$ docker run -t --rm imageId" and test.
+4. Once ready, Push the image to Docker Hub
+$docker login ;
+$docker push imageId
+
+docker run -d -p 8200:8200 --name=dev-vault -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' vault
+
+docker-compose -f keycloak-postgres-jdbc-ping.yml up --scale keycloak=2

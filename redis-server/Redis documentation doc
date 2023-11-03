@@ -1,0 +1,12 @@
+Udemy Course on Redis with Webflux
+-------------------------------------------
+https://www.udemy.com/course/spring-webflux-redis/learn/lecture/27459694#questions
+
+
+Interacting with Redis
+----------------------------
+docker-compose -f docker-compose-redis.yml up
+1. docker exec -it ${CONTAINER_ID} sh
+2. redis-cli -a my-password -h hostname -p port
+e.g  redis-cli -a sOmE_sEcUrE_pAsS -h localhost -p 6379
+3. Ping

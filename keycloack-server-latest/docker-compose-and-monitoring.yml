@@ -1,0 +1,81 @@
+version: '3.8'
+services:
+
+  keycloak_db:
+    image: postgres:15.1
+    env_file:
+      - ./keycloak-postgres.env
+    container_name: keycloak-db
+    restart: unless-stopped
+    ports:
+      - "15432:15432"
+    volumes: 
+      - keycloak_postgresql:/var/lib/postgresql
+      - keycloak_postgresql_data:/var/lib/postgresql/data
+    #networks:
+     #- keycloak-network
+      
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:20.0
+    restart: unless-stopped
+    env_file:
+      - ./keycloak-postgres.env
+    environment:
+      KC_FEATURES: authorization,token-exchange,admin-api,docker,impersonation,scripts,web-authn,client-policies,dynamic-scopes
+    entrypoint: /opt/keycloak/bin/kc.sh start --auto-build
+    links:
+      - keycloak_db:postgres
+    volumes:
+      - keycloak_data:/data
+      - ./certificates/idp.cometbid.com+1.pem:/opt/keycloak/conf/server.crt.pem
+      - ./certificates/idp.cometbid.com+1-key.pem:/opt/keycloak/conf/server.key.pem
+    ports:
+      - "18443:8443"
+      - "18080:8080"
+      - "19990:9990"
+    #networks:
+      #- keycloak-network
+    depends_on:
+      - keycloak_db
+      
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    links:
+      - keycloak:keycloak
+      
+  grafana:
+    image: grafana/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=eiK2othueiMeeF0b
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    ports:
+      - 13000:3000
+    volumes:      
+      - grafana_data:/var/lib/grafana
+      - ./grafana/plugins:/var/lib/grafana/plugins
+    links:
+      - prometheus:prometheus  
+
+volumes: 
+  keycloak_postgresql:
+  keycloak_postgresql_data:
+  keycloak_data:
+  prometheus_data:
+  grafana_data:
+  
+#networks:
+  #keycloak-network:
+    #driver: bridge

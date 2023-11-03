@@ -1,0 +1,43 @@
+version: '3.9'
+
+networks:
+  keycloak-internal:
+    name: keycloak-internal
+  keycloak-public:
+    name: keycloak-public
+
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.21.0
+    restart: unless-stopped
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy-keycloak.yaml -l debug
+    ports:
+      - 443:443
+      - 8001:8001
+    volumes:
+      - type: bind
+        source: ./etc/envoy
+        target: /etc/envoy
+    networks:
+        - keycloak-internal
+        - keycloak-public
+
+  postgres:
+    image: postgres:13.2
+    command: -c ssl=off
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    networks:
+      - keycloak-internal
+      
+  keycloak:
+    depends_on:
+      - postgres
+    container_name: dev_keycloak
+    image: local/keycloak:20.0
+    restart: unless-stopped
+    networks:
+      - keycloak-internal

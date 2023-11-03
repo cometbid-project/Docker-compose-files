@@ -1,0 +1,14 @@
+docker-compose -f docker-compose.yml up -d
+docker exec -it kafka /bin/sh or docker exec -it kafka /bash
+
+cd /opt/
+ls
+cd kafka_2.12 # ls
+cd bin
+cd kafka_2.12# ./bin/kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor  1 --partitions 1 --topic selftuts
+cd kafka_2.12# ./bin/kafka-topics.sh --list --zookeeper zookeeper:2181 
+cd kafka_2.12# ./bin/kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor  1 --partitions 1 --topic test
+cd kafka_2.12# ./bin/kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor  1 --partitions 1 --topic demo
+
+
+

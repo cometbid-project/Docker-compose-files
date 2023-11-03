@@ -1,0 +1,31 @@
+version: '3.3'
+
+services:    
+  mongodb:
+    image: "mongo:${MONGO_VERSION}"
+    mem_limit: 350m
+    hostname: ${HOST_NAME}
+    container_name: ${MONGO_CONTAINER_NAME}
+    restart: always
+    env_file: .env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+    volumes:
+      - db-data:/data/db
+      - ./scripts/mongodb_schema.js:/docker-entrypoint-initdb.d/1-init.js:ro
+    ports:
+      - "2717:27017"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  db-data:
+  
+  
+  

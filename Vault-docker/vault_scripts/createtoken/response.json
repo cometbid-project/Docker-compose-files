@@ -1,0 +1,29 @@
+{
+    "request_id": "6c73b3c8-55fe-ebd8-b964-08ce8ed4f81c",
+    "lease_id": "",
+    "renewable": false,
+    "lease_duration": 0,
+    "data": null,
+    "wrap_info": null,
+    "warnings": null,
+    "auth": {
+        "client_token": "s.TvRfry547CMQBOl1ecy8eP8P",
+        "accessor": "CjMB2IRvlR2qVabc1WKr1w6i",
+        "policies": [
+            "default",
+            "mypolicy"
+        ],
+        "token_policies": [
+            "default",
+            "mypolicy"
+        ],
+        "metadata": {
+            "user": "Sam"
+        },
+        "lease_duration": 36000,
+        "renewable": true,
+        "entity_id": "",
+        "token_type": "service",
+        "orphan": true
+    }
+}

@@ -1,0 +1,35 @@
+version: '3.6'
+
+services:
+  vault:
+    image: ${VAULT_IMAGE_NAME}
+    container_name: ${VAULT_CONTAINER_NAME}
+    restart: on-failure:10
+    ports:
+      - "8200:8200"
+    restart: always
+    env_file: .env
+    volumes:
+      - "./volumes/logs:/vault/logs"
+      - "./volumes/file:/vault/file"
+      - "./volumes/config:/vault/config"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
+      - VAULT_DEV_LISTEN_ADDRESS=${VAULT_LISTEN_ADDR}
+      - VAULT_LOCAL_CONFIG=${VAULT_CONFIG}
+      - VAULT_ADDR=${VAULT_ADDR}
+    cap_add:
+      - IPC_LOCK
+    healthcheck:
+      retries: 5
+    command: ./start_vault_docker.ps1
+    networks:
+      - spring-cloud-network
+
+networks:
+  spring-cloud-network:
+    driver: bridge
+    
+volumes:
+  vault_data:
+  

@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.21.0
+    restart: unless-stopped
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy-keycloak.yaml -l debug
+    ports:
+      - 443:443
+      - 8001:8001
+    volumes:
+      - type: bind
+        source: ./etc/envoy
+        target: /etc/envoy
+    networks:
+      - keycloak-internal
+      - keycloak-public
+      
+  keycloak_db:
+    image: postgres:15.1
+    command: -c ssl=off
+    #env_file:
+      #- ./keycloak-postgres.env
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: postgres
+    container_name: keycloak-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes: 
+      - postgresql:/var/lib/postgres-db
+      - postgresql_data:/var/lib/postgres-db/data
+    networks:
+      - keycloak-internal
+  
+  keycloak:
+    container_name: dev_keycloak
+    image: local/keycloak:20.0
+    restart: unless-stopped
+    #env_file:
+      #- ./keycloak-postgres.env
+    #environment:      
+      #DB_VENDOR: postgres
+      #DB_ADDR: keycloak_db
+    #entrypoint: /opt/keycloak/bin/kc.sh start --optimized
+    volumes:
+      - keycloak_data:/keycloak_data
+      #- ./certificates/idp.cometbid.com+1.pem:/opt/keycloak/conf/server.crt.pem
+      #- ./certificates/idp.cometbid.com+1-key.pem:/opt/keycloak/conf/server.key.pem
+    ports:
+      - "127.0.0.1:18443:8443"
+      - "127.0.0.1:18080:8080"
+    networks:
+      - keycloak-internal
+    depends_on:
+      - keycloak_db
+      
+volumes: 
+  keycloak_data:
+  postgresql:
+  postgresql_data:
+  
+networks:
+  keycloak-internal:
+    name: keycloak-internal
+  keycloak-public:
+    name: keycloak-public

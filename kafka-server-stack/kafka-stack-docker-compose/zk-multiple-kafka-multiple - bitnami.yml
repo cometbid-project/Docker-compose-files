@@ -1,0 +1,207 @@
+version: '2.1'
+
+services:
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3
+    hostname: zookeeper1
+    ports:
+      - '2181:2181'
+      - '2888:2888'
+      - '3888:3888'
+    environment:
+      - ZOO_SERVER_ID=1
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ALLOW_EMPTY_PASSWORD=yes
+      - ZOO_SERVERS=zookeeper:2888:3888,zookeeper2:2888:3888,zookeeper3:2888:3888
+      - ZOO_PORT_NUMBER=2181
+      - ZOO_TLS_CLIENT_ENABLE=yes
+      - ZOO_TLS_PORT_NUMBER=3181
+      - ZOO_TLS_CLIENT_KEYSTORE_FILE
+      - ZOO_TLS_CLIENT_KEYSTORE_PASSWORD
+      - ZOO_TLS_CLIENT_TRUSTSTORE_FILE
+      - ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD
+      - ZOO_SERVER_USERS=user1,user2
+      - ZOO_SERVER_PASSWORDS=pass4user1,pass4user2
+      - ZOO_CLIENT_USER=user1
+      - ZOO_CLIENT_PASSWORD=pass4user1
+    volumes:
+      - zookeeper_data:/bitnami/zookeeper
+      - ./zk-multiple-kafka-multiple/zoo1/data:/bitnami/zookeeper/data
+      - ./zk-multiple-kafka-multiple/zoo1/datalog:/bitnami/zookeeper/datalog
+    networks:
+      - app-tier      
+      
+  zookeeper2:
+    image: docker.io/bitnami/zookeeper:3
+    hostname: zookeeper2
+    ports:
+      - '2181:2181'
+      - '2888:2888'
+      - '3888:3888'
+    environment:
+      - ZOO_SERVER_ID=2
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ALLOW_EMPTY_PASSWORD=yes
+      - ZOO_SERVERS=zookeeper:2888:3888,zookeeper2:2888:3888,zookeeper3:2888:3888
+      - ZOO_PORT_NUMBER=2182
+      - ZOO_TLS_CLIENT_ENABLE=yes
+      - ZOO_TLS_PORT_NUMBER=3181
+      - ZOO_TLS_CLIENT_KEYSTORE_FILE
+      - ZOO_TLS_CLIENT_KEYSTORE_PASSWORD
+      - ZOO_TLS_CLIENT_TRUSTSTORE_FILE
+      - ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD
+      - ZOO_SERVER_USERS=user1,user2
+      - ZOO_SERVER_PASSWORDS=pass4user1,pass4user2
+      - ZOO_CLIENT_USER=user1
+      - ZOO_CLIENT_PASSWORD=pass4user1
+    volumes:
+      - zookeeper2_data:/bitnami/zookeeper
+      - ./zk-multiple-kafka-multiple/zoo2/data:/bitnami/zookeeper/data
+      - ./zk-multiple-kafka-multiple/zoo2/datalog:/bitnami/zookeeper/datalog
+    networks:
+      - app-tier 
+      
+  zookeeper3:
+    image: docker.io/bitnami/zookeeper:3
+    hostname: zookeeper3
+    ports:
+      - '2181:2181'
+      - '2888:2888'
+      - '3888:3888'
+    environment:
+      - ZOO_SERVER_ID=3
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ALLOW_EMPTY_PASSWORD=yes
+      - ZOO_SERVERS=zookeeper:2888:3888,zookeeper2:2888:3888,zookeeper3:2888:3888
+      - ZOO_PORT_NUMBER=2183
+      - ZOO_TLS_CLIENT_ENABLE=yes
+      - ZOO_TLS_PORT_NUMBER=3181
+      - ZOO_TLS_CLIENT_KEYSTORE_FILE
+      - ZOO_TLS_CLIENT_KEYSTORE_PASSWORD
+      - ZOO_TLS_CLIENT_TRUSTSTORE_FILE
+      - ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD
+      - ZOO_SERVER_USERS=user1,user2
+      - ZOO_SERVER_PASSWORDS=pass4user1,pass4user2
+      - ZOO_CLIENT_USER=user1
+      - ZOO_CLIENT_PASSWORD=pass4user1
+    volumes:
+      - zookeeper3_data:/bitnami/zookeeper
+      - ./zk-multiple-kafka-multiple/zoo3/data:/bitnami/zookeeper/data
+      - ./zk-multiple-kafka-multiple/zoo3/datalog:/bitnami/zookeeper/datalog
+    networks:
+      - app-tier 
+      
+  kafka-0:
+    image: docker.io/bitnami/kafka:2
+    hostname: kafka-0
+    ports:
+      - "9092:9092"
+    environment:
+      #- ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CLIENT_USERS=user
+      - KAFKA_CLIENT_PASSWORDS=password
+      - KAFKA_CFG_LISTENERS=LISTENER_DOCKER_INTERNAL://:9095,LISTENER_DOCKER_EXTERNAL://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LISTENER_DOCKER_INTERNAL://kafka-0:9092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=LISTENER_DOCKER_INTERNAL=LISTENER_DOCKER_INTERNAL:SSL,LISTENER_DOCKER_EXTERNAL:SASL_SSL
+      - KAFKA_INTER_BROKER_LISTENER_NAME=LISTENER_DOCKER_INTERNAL
+      - KAFKA_CFG_ZOOKEEPER_CONNECT="zookeeper1:2181,zookeeper2:2182,zookeeper3:2183"
+      - KAFKA_CFG_BROKER_ID=2
+      - KAFKA_LOG4J_LOGGERS="kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+    volumes:
+      - kafka_0_data:/bitnami/kafka
+      - ./zk-multiple-kafka-multiple/kafka0/data:/bitnami/kafka
+      # Both .jks and .pem files are supported
+      # - './kafka.keystore.pem:/opt/bitnami/kafka/config/certs/kafka.keystore.pem:ro'
+      # - './kafka.keystore.key:/opt/bitnami/kafka/config/certs/kafka.keystore.key:ro'
+      # - './kafka.truststore.pem:/opt/bitnami/kafka/config/certs/kafka.truststore.pem:ro'
+      - './kafka.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro'
+      - './kafka.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro'
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    networks:
+      - app-tier 
+      
+  kafka-1:
+    image: confluentinc/cp-kafka:5.5.1
+    hostname: kafka2
+    ports:
+      - "9093:9093"
+    environment:
+      #- ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CLIENT_USERS=user
+      - KAFKA_CLIENT_PASSWORDS=password
+      - KAFKA_CFG_LISTENERS=SASL_SSL://:9095,LISTENER_DOCKER_EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LISTENER_DOCKER_INTERNAL://kafka-1:9093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=LISTENER_DOCKER_INTERNAL:SSL,LISTENER_DOCKER_EXTERNAL:SASL_SSL
+      - KAFKA_INTER_BROKER_LISTENER_NAME=LISTENER_DOCKER_INTERNAL
+      - KAFKA_CFG_ZOOKEEPER_CONNECT="zookeeper1:2181,zookeeper2:2182,zookeeper3:2183"
+      - KAFKA_CFG_BROKER_ID=2
+      - KAFKA_LOG4J_LOGGERS="kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+    volumes:
+      - kafka_1_data:/bitnami/kafka
+      - ./zk-multiple-kafka-multiple/kafka1/data:/bitnami/kafka
+      # Both .jks and .pem files are supported
+      # - './kafka.keystore.pem:/opt/bitnami/kafka/config/certs/kafka.keystore.pem:ro'
+      # - './kafka.keystore.key:/opt/bitnami/kafka/config/certs/kafka.keystore.key:ro'
+      # - './kafka.truststore.pem:/opt/bitnami/kafka/config/certs/kafka.truststore.pem:ro'
+      - './kafka.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro'
+      - './kafka.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro'
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    networks:
+      - app-tier 
+      
+  kafka-2:
+    image: confluentinc/cp-kafka:5.5.1
+    hostname: kafka3
+    ports:
+      - "9094:9094"
+    environment:
+      #- ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CLIENT_USER=user
+      - KAFKA_CLIENT_PASSWORD=password
+      - KAFKA_CFG_LISTENERS=LISTENER_DOCKER_INTERNAL://:9095,LISTENER_DOCKER_EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LISTENER_DOCKER_INTERNAL://kafka-2:9094,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=LISTENER_DOCKER_INTERNAL
+      - KAFKA_CFG_ZOOKEEPER_CONNECT="zookeeper1:2181,zookeeper2:2182,zookeeper3:2183"
+      - KAFKA_CFG_BROKER_ID=2
+      - KAFKA_LOG4J_LOGGERS="kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"      
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    volumes:
+      - kafka_2_data:/bitnami/kafka
+      - ./zk-multiple-kafka-multiple/kafka2/data:/bitnami/kafka
+      # Both .jks and .pem files are supported
+      # - './kafka.keystore.pem:/opt/bitnami/kafka/config/certs/kafka.keystore.pem:ro'
+      # - './kafka.keystore.key:/opt/bitnami/kafka/config/certs/kafka.keystore.key:ro'
+      # - './kafka.truststore.pem:/opt/bitnami/kafka/config/certs/kafka.truststore.pem:ro'
+      - './kafka.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro'
+      - './kafka.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro'
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    networks:
+      - app-tier 
+      
+volumes:
+  zookeeper_data:
+    driver: local
+  zookeeper2_data:
+    driver: local
+  zookeeper3_data:
+    driver: local
+  kafka_0_data:
+    driver: local
+  kafka_1_data:
+    driver: local
+  kafka_2_data:
+    driver: local
+    
+networks:
+  app-tier:
+    driver: bridge

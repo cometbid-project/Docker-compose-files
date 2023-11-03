@@ -1,0 +1,71 @@
+{
+    "request_id": "ab685ec8-47f7-23e9-ced2-f707b233711e",
+    "lease_id": "",
+    "renewable": false,
+    "lease_duration": 0,
+    "data": {
+        "accessor": "CjMB2IRvlR2qVabc1WKr1w6i",
+        "creation_time": 1605242206,
+        "creation_ttl": 36000,
+        "display_name": "token",
+        "entity_id": "",
+        "expire_time": "2020-11-25T17: 00: 40.6442565Z",
+        "explicit_max_ttl": 0,
+        "id": "s.TvRfry547CMQBOl1ecy8eP8P",
+        "issue_time": "2020-11-13T04: 36: 46.7827314Z",
+        "last_renewal": "2020-11-13T05: 00: 40.6442566Z",
+        "last_renewal_time": 1605243640,
+        "meta": {
+            "user": "Sam"
+        },
+        "num_uses": 0,
+        "orphan": true,
+        "path": "auth/token/create-orphan",
+        "policies": [
+            "default",
+            "mypolicy"
+        ],
+        "renewable": true,
+        "ttl": 1079566,
+        "type": "service"
+    },
+    "wrap_info": null,
+    "warnings": null,
+    "auth": null
+}
+
+{
+    "request_id": "1d8df31c-70f1-d812-5d48-6b5da1f71fa9",
+    "lease_id": "",
+    "renewable": false,
+    "lease_duration": 0,
+    "data": {
+        "accessor": "CjMB2IRvlR2qVabc1WKr1w6i",
+        "creation_time": 1605242206,
+        "creation_ttl": 36000,
+        "display_name": "token",
+        "entity_id": "",
+        "expire_time": "2020-11-25T17: 00: 40.6442565Z",
+        "explicit_max_ttl": 0,
+        "id": "s.TvRfry547CMQBOl1ecy8eP8P",
+        "issue_time": "2020-11-13T04: 36: 46.7827314Z",
+        "last_renewal": "2020-11-13T05: 00: 40.6442566Z",
+        "last_renewal_time": 1605243640,
+        "meta": {
+            "user": "Sam"
+        },
+        "num_uses": 0,
+        "orphan": true,
+        "path": "auth/token/create-orphan",
+        "policies": [
+            "default",
+            "mypolicy"
+        ],
+        "renewable": true,
+        "ttl": 1079406,
+        "type": "service"
+    },
+    "wrap_info": null,
+    "warnings": null,
+    "auth": null
+}
