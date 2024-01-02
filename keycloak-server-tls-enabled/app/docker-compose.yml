@@ -27,7 +27,7 @@ services:
       - postgres
     environment:    
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin@1234
+      KEYCLOAK_ADMIN_PASSWORD: admin
       KC_DB: postgres
       KC_DB_SCHEMA: public
       KC_DB_USERNAME: keycloak
