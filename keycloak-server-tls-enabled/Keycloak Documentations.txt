@@ -155,8 +155,6 @@ https://www.youtube.com/watch?v=IW6BLgvF5Os
 
 
 
-
-
 https://stackoverflow.com/questions/65714161/keycloak-generate-access-token-for-a-user-with-keycloak-admin
 admin	True	Myrealm admin role
 APP_MANAGER	True	For the creator of the Merchant account and the role cannot be reassigned	Edit	Delete
@@ -166,15 +164,13 @@ STAFF	True	Staff role, dedicated to Merchant's staffs both Contract and Full-tim
 USER  False	User role, the least role privilege for an application user
 
 
-
-
-
-
 Microservices Setup -- Keycloak
 https://developers.redhat.com/blog/2020/11/24/authentication-and-authorization-using-the-keycloak-rest-api#keycloak_sso_demo
 
 
-
+Generate Self-signed Certificate for Keycloak
+1. Search on google for "lets encrypt localhost"
+2. openssl req -x509 -out localhostcert.pem -keyout localhostkey.pem -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT -config <(printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
 
 
 
